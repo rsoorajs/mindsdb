@@ -1,6 +1,6 @@
 import unittest
 from mindsdb.integrations.handlers.strapi_handler.strapi_handler import StrapiHandler
-from mindsdb.api.mysql.mysql_proxy.libs.constants.response_type import RESPONSE_TYPE
+from mindsdb.api.executor.data_types.response_type import RESPONSE_TYPE
 
 
 class StrapiHandlerTest(unittest.TestCase):
@@ -11,7 +11,7 @@ class StrapiHandlerTest(unittest.TestCase):
             'host': 'localhost',
             'port': '1337',
             'api_token': 'c56c000d867e95848c',
-            'pluralApiIds': ['products', 'sellers']}
+            'plural_api_ids': ['products', 'sellers']}
         cls.handler = StrapiHandler(name='myshop', connection_data=connection_data)
 
     def test_0_check_connection(self):

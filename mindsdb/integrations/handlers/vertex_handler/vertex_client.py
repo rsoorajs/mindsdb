@@ -1,14 +1,23 @@
 from mindsdb.utilities import log
 from google.cloud import aiplatform
-from google.oauth2 import service_account
 import pandas as pd
+
+from mindsdb.integrations.handlers.utilities.auth_utilities import GoogleServiceAccountOAuth2Manager
+
+logger = log.getLogger(__name__)
 
 
 class VertexClient:
     """A class to interact with Vertex AI"""
 
-    def __init__(self, credentials_info, args_json):
-        credentials = service_account.Credentials.from_service_account_info(credentials_info)
+    def __init__(self, args_json, credentials_url=None, credentials_file=None, credentials_json=None):
+        google_sa_oauth2_manager = GoogleServiceAccountOAuth2Manager(
+            credentials_url=credentials_url,
+            credentials_file=credentials_file,
+            credentials_json=credentials_json,
+        )
+        credentials = google_sa_oauth2_manager.get_oauth2_credentials()
+
         aiplatform.init(
             credentials=credentials,
             project=args_json["project_id"],
@@ -24,38 +33,38 @@ class VertexClient:
     def print_datasets(self):
         """Print all datasets and dataset ids in the project"""
         for dataset in aiplatform.TabularDataset.list():
-            log.logger.info(f"Dataset display name: {dataset.display_name}, ID: {dataset.name}")
+            logger.info(f"Dataset display name: {dataset.display_name}, ID: {dataset.name}")
 
     def print_models(self):
         """Print all model names and model ids in the project"""
         for model in aiplatform.Model.list():
-            log.logger.info(f"Model display name: {model.display_name}, ID: {model.name}")
+            logger.info(f"Model display name: {model.display_name}, ID: {model.name}")
 
     def print_endpoints(self):
         """Print all endpoints and endpoint ids in the project"""
         for endpoint in aiplatform.Endpoint.list():
-            log.logger.info(f"Endpoint display name: {endpoint.display_name}, ID: {endpoint.name}")
+            logger.info(f"Endpoint display name: {endpoint.display_name}, ID: {endpoint.name}")
 
     def get_model_by_display_name(self, display_name):
         """Get a model by its display name"""
         try:
             return aiplatform.Model.list(filter=f"display_name={display_name}")[0]
         except IndexError:
-            log.logger.info(f"Model with display name {display_name} not found")
+            logger.info(f"Model with display name {display_name} not found")
 
     def get_endpoint_by_display_name(self, display_name):
         """Get an endpoint by its display name"""
         try:
             return aiplatform.Endpoint.list(filter=f"display_name={display_name}")[0]
         except IndexError:
-            log.logger.info(f"Endpoint with display name {display_name} not found")
+            logger.info(f"Endpoint with display name {display_name} not found")
 
     def get_model_by_id(self, model_id):
         """Get a model by its ID"""
         try:
             return aiplatform.Model(model_name=model_id)
         except IndexError:
-            log.logger.info(f"Model with ID {model_id} not found")
+            logger.info(f"Model with ID {model_id} not found")
 
     def deploy_model(self, model):
         """Deploy a model to an endpoint - long runtime"""

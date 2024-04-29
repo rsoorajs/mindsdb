@@ -7,19 +7,19 @@ from langchain.embeddings.base import Embeddings
 from pandas import DataFrame
 
 from mindsdb.integrations.libs.base import BaseMLEngine
-from mindsdb.utilities.log import get_log
+from mindsdb.utilities import log
 
-LOG = get_log("langchain_embedding")
+logger = log.getLogger(__name__)
 
 # construct the embedding model name to the class mapping
-# we try to import all embedding models from langchain.embeddings
+# we try to import all embedding models from langchain_community.embeddings
 # for each class, we get a more user friendly name for it
 # E.g. OpenAIEmbeddings -> OpenAI
 # This is used for the user to select the embedding model
 EMBEDDING_MODELS = {}
 
 try:
-    module = importlib.import_module("langchain.embeddings")
+    module = importlib.import_module("langchain_community.embeddings")
     # iterate __all__ to get all the classes
     for class_name in module.__all__:
         class_ = getattr(module, class_name)
@@ -47,7 +47,7 @@ def get_langchain_class(class_name: str) -> Embeddings:
         langchain.embeddings.BaseEmbedding: The class object
     """
     try:
-        module = importlib.import_module("langchain.embeddings")
+        module = importlib.import_module("langchain_community.embeddings")
         class_ = getattr(module, class_name)
     except ImportError:
         raise Exception(
@@ -55,7 +55,7 @@ def get_langchain_class(class_name: str) -> Embeddings:
         )
     except AttributeError:
         raise Exception(
-            f"Could not find the class {class_name} in langchain.embeddings. Please check the class name."
+            f"Could not find the class {class_name} in langchain_community.embeddings. Please check the class name."
         )
     return class_
 
@@ -67,7 +67,7 @@ def construct_model_from_args(args: Dict) -> Embeddings:
     target = args.pop("target", None)
     class_name = args.pop("class", LangchainEmbeddingHandler.DEFAULT_EMBEDDING_CLASS)
     if class_name in EMBEDDING_MODELS:
-        LOG.info(
+        logger.info(
             f"Mapping the user friendly name {class_name} to the class name: {EMBEDDING_MODELS[class_name]}"
         )
         class_name = EMBEDDING_MODELS[class_name]
